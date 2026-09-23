@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `user` MODIFY `OTP_CODE` INTEGER NULL;

@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User } from "@prisma/client";
 import { PrismaService } from '../database/prisma.service.js';
-import { IApiResponse } from "../types/apiResponse.js";
-import { CreateUserDto, FindUserDto, UpdateUserDto } from "../dtos/UserDto.dto.js";
+import { OtpService } from '../otp/otp.service.js';
+import { UserHandlersResponse } from "../dtos/API.dto.js";
+import { CreateUserDto, FindUserDto, UpdateUserDto } from "../dtos/User.dto.js";
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly prisma: PrismaService){}
+    constructor(private readonly prisma: PrismaService, private readonly OTPService: OtpService){}
 
-    async signup(data: CreateUserDto): Promise<IApiResponse> {
+    async signup(data: CreateUserDto): Promise<UserHandlersResponse> {
         try {
             await this.prisma.user.create({ data });
+            await this.OTPService.sendOTP(data.email);
+            
             return { status: 201, message: "User created"}
         }catch(E: any) {
             const driverError = (E.meta as any)?.driverAdapterError;
@@ -23,7 +25,7 @@ export class UsersService {
         }
     }
 
-    async signin({email, password}: FindUserDto): Promise<IApiResponse> {
+    async signin({email, password}: FindUserDto): Promise<UserHandlersResponse> {
         try {
             const user = await this.prisma.user.findFirst({
                 where: {email, password}
@@ -46,7 +48,7 @@ export class UsersService {
         }
     }
 
-    async update(id: string, data: UpdateUserDto): Promise<IApiResponse> {
+    async update(id: string, data: UpdateUserDto): Promise<UserHandlersResponse> {
          try {
             const user = await this.prisma.user.update({
                 where: { id },
@@ -65,7 +67,7 @@ export class UsersService {
         }
     }
 
-    async delete(id: string): Promise<IApiResponse> {
+    async delete(id: string): Promise<UserHandlersResponse> {
         try {
             await this.prisma.user.delete({
                 where: { id } 

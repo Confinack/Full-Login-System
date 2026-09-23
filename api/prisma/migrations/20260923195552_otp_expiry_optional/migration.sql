@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `user` MODIFY `OTP_EXPIRY` DATETIME(3) NULL;
