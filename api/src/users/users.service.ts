@@ -2,7 +2,8 @@ import {
     Injectable,
     NotFoundException,
     ConflictException,
-    InternalServerErrorException
+    InternalServerErrorException,
+    BadRequestException
 } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
@@ -10,7 +11,7 @@ import { OtpService } from '../otp/otp.service.js';
 import { UserHandlersResponse } from "../dtos/API.dto.js";
 import { CreateUserDto, FindUserDto, UpdateUserDto } from "../dtos/User.dto.js";
 import { IFindUser } from './dto/find-user.dto.js';
-
+import { IUpdateUser } from './dto/update-user.dto.js';
 
 @Injectable()
 export class UsersService {
@@ -35,7 +36,29 @@ export class UsersService {
         }
     }
 
-    async update(id: string, data: UpdateUserDto): Promise<UserHandlersResponse> {
+    async findByEmail(email: string): Promise<User> {
+        try {
+            const user = await this.prisma.user.findFirst({where: {email}});
+            if (!user) {throw new NotFoundException()}
+
+            return user;
+        } catch (E: any) {
+            throw new BadRequestException();
+        }
+    }
+
+    async update(id: string, data: IUpdateUser): Promise<void> {
+        try {
+            const user = await this.prisma.user.update({
+                where: {id},
+                data
+            })
+        } catch(E: any) {
+            throw new ConflictException();
+        }
+    }
+
+    async updatea(id: string, data: UpdateUserDto): Promise<UserHandlersResponse> {
          try {
             const user = await this.prisma.user.update({
                 where: { id },

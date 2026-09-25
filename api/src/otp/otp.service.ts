@@ -1,42 +1,28 @@
 import { 
+    ConflictException,
     Injectable,
+    InternalServerErrorException,
     NotFoundException
 } from '@nestjs/common';
+
+import * as crypto from "crypto";
+import { IOTPData } from './dto/otp-data.dto.js';
+import { IVerifyOTP } from './dto/verify-otp.dto.js';
+
 import { MailsenderService } from "../mailsender/mailsender.service.js";
 import { PrismaService } from '../database/prisma.service.js';
-import * as crypto from "crypto";
 
 @Injectable()
 export class OtpService {
     // 30 minutos;
     private readonly otp_expiry_time = (30 * 60 * 1000);
-    
     constructor(private readonly MailService: MailsenderService, private readonly PrismaService: PrismaService){};
 
-    // Eu sei que é uma linha só, mas por acaso se eu quiser adicionar complexidade nessa lógica eu já tenho a função pronta
-    private generateOTP(): number {return crypto.randomInt(100000, 999999)}
-
-    async sendOTP(email: string): Promise<void> {
+    async generateOTP(email: string): Promise<IOTPData> {
         try {
-
-            const user = await this.PrismaService.user.findFirst({
-                where: {email}
-            })
-            
-            if (!user) {throw new NotFoundException()}
-
-            const code = this.generateOTP();
+            const code = crypto.randomInt(100000, 999999);
             const current_date = new Date();
             current_date.setTime(current_date.getTime() + this.otp_expiry_time);
-
-            await this.PrismaService.user.update({
-                where: { email },
-                data: {
-                    ...user, 
-                    OTP_CODE: code,
-                    OTP_EXPIRY: current_date
-                }
-            })
 
             await this.MailService.sendEmail({
                 to: email,
@@ -44,14 +30,24 @@ export class OtpService {
                 text: `Your OTP code is ${code}`
             });
 
-            return;
+            return {
+                code,
+                expiryAt: current_date
+            };
         } catch(E: any) {
-            console.log(E.message);
-            return;
+            throw new InternalServerErrorException();
         }
     }
 
-    async verifyOTP({user_id, code}: {user_id: string, code: string}): Promise<void> {
-        return
+    async verifyOTP({email, code}: IVerifyOTP): Promise<boolean> {
+        try {
+            const user = await this.PrismaService.user.findFirst({where: {email}})
+            if (!user) {throw new NotFoundException()}
+            if (user.OTP_CODE != code) {throw new ConflictException()}
+            
+            return true;
+        } catch(E: any) {
+            throw new NotFoundException();
+        }
     }
 }
