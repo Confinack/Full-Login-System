@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { 
+    Injectable,
+    ConflictException
+} from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 import { OtpService } from '../otp/otp.service.js';
 import { UserHandlersResponse } from "../dtos/API.dto.js";
@@ -7,6 +11,15 @@ import { CreateUserDto, FindUserDto, UpdateUserDto } from "../dtos/User.dto.js";
 @Injectable()
 export class UsersService {
     constructor(private readonly prisma: PrismaService, private readonly OTPService: OtpService){}
+
+    async create(data: Prisma.UserCreateInput): Promise<{new_user: User, message?: string,}> {
+        try {
+            const new_user = await this.prisma.user.create({data});
+            return {new_user, message: "Usuário criado com sucesso"};
+        } catch(E: any) {
+            throw new ConflictException();
+        }
+    }
 
     async signup(data: CreateUserDto): Promise<UserHandlersResponse> {
         try {

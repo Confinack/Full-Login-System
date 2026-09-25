@@ -46,4 +46,8 @@ export class OtpService {
             return;
         }
     }
+
+    async verifyOTP({user_id, code}: {user_id: string, code: string}): Promise<void> {
+        return
+    }
 }

@@ -8,5 +8,6 @@ import { OtpModule } from '../otp/otp.module.js';
   imports: [DatabaseModule, OtpModule],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService]
 })
 export class UsersModule {}
