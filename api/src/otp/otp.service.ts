@@ -1,12 +1,14 @@
-import { 
+import {
+    HttpException,
     ConflictException,
     Injectable,
     InternalServerErrorException,
-    NotFoundException
+    NotFoundException,
+    RequestTimeoutException
 } from '@nestjs/common';
 
 import * as crypto from "crypto";
-import { IOTPData } from './dto/otp-data.dto.js';
+import { IOTPData } from './dto/data-otp.dto.js';
 import { IVerifyOTP } from './dto/verify-otp.dto.js';
 
 import { MailsenderService } from "../mailsender/mailsender.service.js";
@@ -35,6 +37,9 @@ export class OtpService {
                 expiryAt: current_date
             };
         } catch(E: any) {
+            if (E instanceof HttpException){
+                throw E
+            }
             throw new InternalServerErrorException();
         }
     }
@@ -42,11 +47,16 @@ export class OtpService {
     async verifyOTP({email, code}: IVerifyOTP): Promise<boolean> {
         try {
             const user = await this.PrismaService.user.findFirst({where: {email}})
+            const current_date = new Date();
             if (!user) {throw new NotFoundException()}
             if (user.OTP_CODE != code) {throw new ConflictException()}
+            if (!(user.OTP_EXPIRY) || !(current_date <= user.OTP_EXPIRY)){throw new RequestTimeoutException()}
             
             return true;
         } catch(E: any) {
+            if (E instanceof HttpException){
+                throw E
+            }
             throw new NotFoundException();
         }
     }

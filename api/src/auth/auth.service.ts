@@ -6,7 +6,7 @@ import { OtpService } from '../otp/otp.service.js';
 
 import { IRegisterUser } from '../users/dto/register-user.dto.js';
 import { IFindUser } from '../users/dto/find-user.dto.js';
-import { ILoginResponse } from './dto/login-response.dto.js';
+import { ILoginResponse } from './dto/login-response-auth.dto.js';
 import { IVerifyOTP } from '../otp/dto/verify-otp.dto.js';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class AuthService {
         const validation = await this.OTPService.verifyOTP(data);
         if(!validation){return false}
 
-        await this.UserService.update(user.id, {isVerified: true});
+        await this.UserService.update(user.id, {OTP_CODE: null, OTP_EXPIRY: null, isVerified: true});
         return validation;
     }
 }
