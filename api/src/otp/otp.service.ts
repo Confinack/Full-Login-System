@@ -47,8 +47,10 @@ export class OtpService {
     async verifyOTP({email, code}: IVerifyOTP): Promise<boolean> {
         try {
             const user = await this.PrismaService.user.findFirst({where: {email}})
-            const current_date = new Date();
             if (!user) {throw new NotFoundException()}
+            if(user.isVerified){return true}
+
+            const current_date = new Date();
             if (user.OTP_CODE != code) {throw new ConflictException()}
             if (!(user.OTP_EXPIRY) || !(current_date <= user.OTP_EXPIRY)){throw new RequestTimeoutException()}
             
