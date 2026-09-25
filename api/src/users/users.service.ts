@@ -1,12 +1,16 @@
 import { 
     Injectable,
-    ConflictException
+    NotFoundException,
+    ConflictException,
+    InternalServerErrorException
 } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 import { OtpService } from '../otp/otp.service.js';
 import { UserHandlersResponse } from "../dtos/API.dto.js";
 import { CreateUserDto, FindUserDto, UpdateUserDto } from "../dtos/User.dto.js";
+import { IFindUser } from './dto/find-user.dto.js';
+
 
 @Injectable()
 export class UsersService {
@@ -21,43 +25,13 @@ export class UsersService {
         }
     }
 
-    async signup(data: CreateUserDto): Promise<UserHandlersResponse> {
+    async findFirst(data: IFindUser): Promise<User> {
         try {
-            await this.prisma.user.create({ data });
-            await this.OTPService.sendOTP(data.email);
-            
-            return { status: 201, message: "User created"}
-        }catch(E: any) {
-            const driverError = (E.meta as any)?.driverAdapterError;
-            const message = (driverError as any)?.cause?.originalMessage || "Unknow";
-
-            return {
-                status: 409,
-                message
-            }
-        }
-    }
-
-    async signin({email, password}: FindUserDto): Promise<UserHandlersResponse> {
-        try {
-            const user = await this.prisma.user.findFirst({
-                where: {email, password}
-            })
-
-            if (!user) return { status: 404, message: "User not found"};
-
-            return {
-                status: 200,
-                body: user
-            }
-        }catch(E: any) {
-            const driverError = (E.meta as any)?.driverAdapterError;
-            const message = (driverError as any)?.cause?.originalMessage || "Unknow";
-
-            return {
-                status: 404,
-                message
-            }
+            const user = await this.prisma.user.findFirst({where: data})
+            if (!user) {throw new NotFoundException()}
+            return user;
+        } catch(E: any) {
+            throw new InternalServerErrorException();
         }
     }
 

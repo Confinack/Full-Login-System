@@ -1,4 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { 
+    Injectable,
+    NotFoundException
+} from '@nestjs/common';
 import { MailsenderService } from "../mailsender/mailsender.service.js";
 import { PrismaService } from '../database/prisma.service.js';
 import * as crypto from "crypto";
@@ -13,13 +16,14 @@ export class OtpService {
     // Eu sei que é uma linha só, mas por acaso se eu quiser adicionar complexidade nessa lógica eu já tenho a função pronta
     private generateOTP(): number {return crypto.randomInt(100000, 999999)}
 
-    async sendOTP(email: string): Promise<string | void> {
+    async sendOTP(email: string): Promise<void> {
         try {
 
             const user = await this.PrismaService.user.findFirst({
                 where: {email}
             })
-            if (!user) {return "Email not found"}
+            
+            if (!user) {throw new NotFoundException()}
 
             const code = this.generateOTP();
             const current_date = new Date();

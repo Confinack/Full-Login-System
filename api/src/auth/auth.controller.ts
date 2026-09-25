@@ -7,17 +7,25 @@ import {
   HttpStatus
 } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
-import type { IRegisterUser } from './dto/register-user.dto.ts';
+import type { IRegisterUser } from '../users/dto/register-user.dto.js';
+import type { IFindUser } from '../users/dto/find-user.dto.js';
 import type { Response } from "express";
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("/register")
+  @Post("register")
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() data: IRegisterUser, @Res() response: Response): Promise<void> {
     const result = await this.authService.register(data);
+    response.json(result);
+  };
+
+  @Post("login")
+  @HttpCode(HttpStatus.FOUND)
+  async login(@Body() data: IFindUser, @Res() response: Response): Promise<void> {
+    const result = await this.authService.login(data);
     response.json(result);
   }
 }
