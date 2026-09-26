@@ -22,37 +22,34 @@ export class UsersService {
             const new_user = await this.prisma.user.create({data});
             return {new_user, message: "Usuário criado com sucesso"};
         } catch(E: any) {
-            if (E instanceof HttpException){
-                throw E
-            }
-            throw new ConflictException();
+            throw new InternalServerErrorException("Não foi possível cadastrar usuário : Dados inválidos");
         }
     }
 
     async findFirst(data: IFindUser): Promise<User> {
         try {
             const user = await this.prisma.user.findFirst({where: data})
-            if (!user) {throw new NotFoundException()}
+            if (!user) {throw new NotFoundException("Usuário não encontrado")}
             return user;
         } catch(E: any) {
             if (E instanceof HttpException){
                 throw E
             }
-            throw new InternalServerErrorException();
+            throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário");
         }
     }
 
     async findByEmail(email: string): Promise<User> {
         try {
             const user = await this.prisma.user.findFirst({where: {email}});
-            if (!user) {throw new NotFoundException()}
+            if (!user) {throw new NotFoundException("Usuário não encontrado")}
 
             return user;
         } catch (E: any) {
             if (E instanceof HttpException){
                 throw E
             }
-            throw new BadRequestException();
+            throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário por email");
         }
     }
 
@@ -63,7 +60,7 @@ export class UsersService {
                 data
             })
         } catch(E: any) {
-            throw new ConflictException();
+            throw new InternalServerErrorException("Erro inesperado ocorreu ao tentar atualizar usuário");
         }
     }
 
@@ -71,7 +68,7 @@ export class UsersService {
         try {
             await this.prisma.user.delete({where: { id }});
         }catch(E: any) {
-            throw new InternalServerErrorException();
+            throw new InternalServerErrorException("Erro inesperado ocorreu ao tentar deletar usuário");
         }
     }
 }
