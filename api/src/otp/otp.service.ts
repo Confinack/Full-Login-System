@@ -16,41 +16,51 @@ import { PrismaService } from '../database/prisma.service.js';
 
 @Injectable()
 export class OtpService {
-    // 30 minutos;
-    private readonly otp_expiry_time = (30 * 60 * 1000);
+    private readonly otp_expiry_time_in_minutes = 10;
     constructor(private readonly MailService: MailsenderService, private readonly PrismaService: PrismaService){};
 
-    async generateOTP(email: string): Promise<IOTPData> {
+    async registerOTP(user_id: string, code: number, expiryAt: Date): Promise<void> {
+        try {
+            await this.PrismaService.otp.deleteMany({where: {user_id}})
+
+            await this.PrismaService.otp.create({
+                data: {
+                    user_id,
+                    code,
+                    expiryAt
+                }
+            })
+        } catch(E: any){
+            throw new InternalServerErrorException("Erro ao tentar registrar código OTP");
+        }
+    }
+
+    async generateOTP(user_id: string, email: string): Promise<void> {
         try {
             const code = crypto.randomInt(100000, 999999);
-            const current_date = new Date();
-            current_date.setTime(current_date.getTime() + this.otp_expiry_time);
+            const expiryAt = new Date();
+            expiryAt.setTime(expiryAt.getTime() + (this.otp_expiry_time_in_minutes * 60 * 1000));
 
+            await this.registerOTP(user_id, code, expiryAt);
             await this.MailService.sendEmail({
                 to: email,
                 subject: "OTP verification",
                 text: `Your OTP code is ${code}`
             });
-
-            return {
-                code,
-                expiryAt: current_date
-            };
         } catch(E: any) {
-            throw new InternalServerErrorException("Erro ao tentar enviar o código OTP");
+            throw new InternalServerErrorException("Erro ao tentar gerar o código OTP");
         }
     }
 
-    async verifyOTP({email, code}: IVerifyOTP): Promise<boolean> {
+    async verifyOTP({user_id, code}: IVerifyOTP): Promise<boolean> {
         try {
-            const user = await this.PrismaService.user.findFirst({where: {email}})
-            if (!user) {throw new NotFoundException("Usuário não encontrado")}
-            if(user.isVerified){return true}
-
+            const OTP = await this.PrismaService.otp.findFirst({where: {user_id}});
+            if(!OTP) {throw new NotFoundException("Usuário não possuí código OTP")};
+            console.log(code);
             const current_date = new Date();
-            if (user.OTP_CODE != code) {throw new ConflictException("Código OTP inválido")}
-            if (!(user.OTP_EXPIRY) || !(current_date <= user.OTP_EXPIRY)){throw new RequestTimeoutException("Código OTP expirou")}
-            
+            if (current_date > OTP.expiryAt){throw new RequestTimeoutException("Código OTP expirou")};
+            if (OTP.code != code) {throw new ConflictException("Código OTP inválido")};
+
             return true;
         } catch(E: any) {
             if (E instanceof HttpException){

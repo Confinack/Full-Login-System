@@ -7,6 +7,7 @@ import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 
 import { IFindUser } from './dto/find-user.dto.js';
+import { IFindByCredentials } from './dto/findByCredentials-user.dto.js';
 import { IUpdateUser } from './dto/update-user.dto.js';
 
 @Injectable()
@@ -23,6 +24,15 @@ export class UsersService {
     }
 
     async findFirst(data: IFindUser): Promise<User | null> {
+        try {
+            const user = await this.prisma.user.findFirst({where: data})
+            return user;
+        } catch(E: any) {
+            throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário");
+        }
+    }
+
+    async findByCredentials(data: IFindByCredentials): Promise<User | null> {
         try {
             const user = await this.prisma.user.findFirst({where: data})
             return user;

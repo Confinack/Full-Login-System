@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
@@ -17,12 +17,15 @@ export class MailsenderService {
     }
 
     async sendEmail({ to, subject, text }: { to: string, subject: string, text: string }): Promise<void>{
-        await this.transporter.sendMail({
-            from: "nao-responda@gmail.com",
-            to,
-            subject,
-            text
-        })
-        return;
+        try {
+            await this.transporter.sendMail({
+                from: "nao-responda@gmail.com",
+                to,
+                subject,
+                text
+            })
+        } catch(E: any){
+            throw new InternalServerErrorException("Erro ao enviar email");
+        }        
     }
 }

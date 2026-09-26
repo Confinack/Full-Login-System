@@ -1,4 +1,5 @@
 export interface IFindUser {
-    email: string,
-    password: string
+    id?:    string,
+    name?:  string,
+    email?: string
 }
