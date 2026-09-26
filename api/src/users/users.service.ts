@@ -1,10 +1,6 @@
 import { 
     Injectable,
-    NotFoundException,
-    ConflictException,
-    InternalServerErrorException,
-    BadRequestException,
-    HttpException
+    InternalServerErrorException
 } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 
@@ -22,33 +18,24 @@ export class UsersService {
             const new_user = await this.prisma.user.create({data});
             return {new_user, message: "Usuário criado com sucesso"};
         } catch(E: any) {
-            throw new InternalServerErrorException("Não foi possível cadastrar usuário : Dados inválidos");
+            throw new InternalServerErrorException("Não foi possível cadastrar usuário");
         }
     }
 
-    async findFirst(data: IFindUser): Promise<User> {
+    async findFirst(data: IFindUser): Promise<User | null> {
         try {
             const user = await this.prisma.user.findFirst({where: data})
-            if (!user) {throw new NotFoundException("Usuário não encontrado")}
             return user;
         } catch(E: any) {
-            if (E instanceof HttpException){
-                throw E
-            }
             throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário");
         }
     }
 
-    async findByEmail(email: string): Promise<User> {
+    async findByEmail(email: string): Promise<User | null> {
         try {
             const user = await this.prisma.user.findFirst({where: {email}});
-            if (!user) {throw new NotFoundException("Usuário não encontrado")}
-
             return user;
         } catch (E: any) {
-            if (E instanceof HttpException){
-                throw E
-            }
             throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário por email");
         }
     }

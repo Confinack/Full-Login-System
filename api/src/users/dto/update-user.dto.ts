@@ -4,5 +4,6 @@ export interface IUpdateUser {
     password?: string,
     OTP_CODE?: number | null,
     OTP_EXPIRY?: Date | null,
-    isVerified?: boolean
+    isVerified?: boolean,
+    createdAt?: Date
 }
