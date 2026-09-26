@@ -14,7 +14,7 @@ export class AuthService {
     constructor(private readonly UserService: UsersService, private OTPService: OtpService){}
 
     async register(user_data: IRegisterUser): Promise<{user?: User, message?: string}> {
-        const user = await this.UserService.findByEmail(user_data.email);
+        const user = await this.UserService.findFirst({email: user_data.email});
 
         if(user) {
             if(!user.isVerified) {

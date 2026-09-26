@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 
 import * as crypto from "crypto";
-import { IOTPData } from './dto/data-otp.dto.js';
 import { IVerifyOTP } from './dto/verify-otp.dto.js';
 
 import { MailsenderService } from "../mailsender/mailsender.service.js";

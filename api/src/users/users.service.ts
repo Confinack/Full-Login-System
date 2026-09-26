@@ -37,16 +37,7 @@ export class UsersService {
             const user = await this.prisma.user.findFirst({where: data})
             return user;
         } catch(E: any) {
-            throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário");
-        }
-    }
-
-    async findByEmail(email: string): Promise<User | null> {
-        try {
-            const user = await this.prisma.user.findFirst({where: {email}});
-            return user;
-        } catch (E: any) {
-            throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário por email");
+            throw new InternalServerErrorException("Erro ao buscar usuário pelas suas credenciais");
         }
     }
 
