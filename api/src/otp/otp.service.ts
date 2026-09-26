@@ -37,29 +37,26 @@ export class OtpService {
                 expiryAt: current_date
             };
         } catch(E: any) {
-            if (E instanceof HttpException){
-                throw E
-            }
-            throw new InternalServerErrorException();
+            throw new InternalServerErrorException("Erro ao tentar enviar o código OTP");
         }
     }
 
     async verifyOTP({email, code}: IVerifyOTP): Promise<boolean> {
         try {
             const user = await this.PrismaService.user.findFirst({where: {email}})
-            if (!user) {throw new NotFoundException()}
+            if (!user) {throw new NotFoundException("Usuário não encontrado")}
             if(user.isVerified){return true}
 
             const current_date = new Date();
-            if (user.OTP_CODE != code) {throw new ConflictException()}
-            if (!(user.OTP_EXPIRY) || !(current_date <= user.OTP_EXPIRY)){throw new RequestTimeoutException()}
+            if (user.OTP_CODE != code) {throw new ConflictException("Código OTP inválido")}
+            if (!(user.OTP_EXPIRY) || !(current_date <= user.OTP_EXPIRY)){throw new RequestTimeoutException("Código OTP expirou")}
             
             return true;
         } catch(E: any) {
             if (E instanceof HttpException){
                 throw E
             }
-            throw new NotFoundException();
+            throw new InternalServerErrorException("Erro inesperado ao validar OTP");
         }
     }
 }
