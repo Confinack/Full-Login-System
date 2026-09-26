@@ -27,7 +27,7 @@ export class AuthService {
 
     async login(user_data: IFindUser): Promise<ILoginResponse> {
         const {id, name, email, isVerified} = await this.UserService.findFirst(user_data);
-        if (!isVerified) {throw new ForbiddenException()};
+        if (!isVerified) {throw new ForbiddenException("Usuário não passou pela validação de OTP")};
 
         return {id, name, email, isVerified};
     }
