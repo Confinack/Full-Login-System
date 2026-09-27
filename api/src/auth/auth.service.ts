@@ -78,12 +78,19 @@ export class AuthService {
         await this.PasswordResetService.generatePasswordResetToken({user_id: user.id, to: email});
     }
 
-    async resetPassword(data: IResetPassword): Promise<{message: string}> {
-        const validToken = await this.PasswordResetService.verifyToken(data);
-        if(!validToken){throw new ConflictException("Dados inválidos")};
+    async verifyPasswordResetToken(token: string): Promise<boolean> {
+        const {user_id, isTokenValid} = await this.PasswordResetService.verifyToken(token);
+        return isTokenValid;
+    }
 
+    async resetPassword(data: IResetPassword): Promise<{message: string}> {
+        const {user_id, isTokenValid} = await this.PasswordResetService.verifyToken(data.token);
+        
+        if(!isTokenValid){throw new ConflictException("Dados inválidos")};
+        if(!user_id){throw new NotFoundException("Usuário não encontrado")};
         if(data.password != data.confirmPassword){throw new ConflictException("Credenciais inválidas ao tentar resetar a senha")};
-        await this.UserService.update(data.user_id, {password: data.password});
+        
+        await this.UserService.update(user_id, {password: data.password});
         return {message: "Senha atualizada com sucesso"};
     }
 }

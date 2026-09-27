@@ -1,6 +1,8 @@
 import { 
   Controller,
+  Get,
   Post,
+  Param,
   Body,
   Res,
   HttpCode,
@@ -44,6 +46,13 @@ export class AuthController {
   async forgotPassword(@Body() { email }: {email: string}, @Res() response: Response): Promise<void> {
     await this.authService.forgotPassword(email);
     response.end();
+  }
+
+  @Get("reset-password/verify/:token")
+  @HttpCode(HttpStatus.OK)
+  async verifyPasswordResetToken(@Param("token") token: string, @Res() response: Response): Promise<void> {
+    const result = await this.authService.verifyPasswordResetToken(token);
+    response.json({isValidToken: result});
   }
 
   @Post("reset-password")

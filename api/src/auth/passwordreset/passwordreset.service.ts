@@ -1,7 +1,9 @@
 import { 
     Injectable, 
     HttpException, 
-    InternalServerErrorException 
+    InternalServerErrorException, 
+    NotFoundException,
+    RequestTimeoutException
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service.js';
 import { MailsenderService } from '../../mailsender/mailsender.service.js';
@@ -46,17 +48,15 @@ export class PasswordresetService {
         }
     }
 
-    async verifyToken({user_id, token}: IResetPassword): Promise<boolean> {
+    async verifyToken(token: string): Promise<{user_id?: string, isTokenValid: boolean}> {
         try {
-            const ocurrence = await this.PrismaSerivce.passwordReset.findFirst({
-                where: {
-                    user_id,
-                    token
-                }
-            });
+            const ocurrence = await this.PrismaSerivce.passwordReset.findFirst({where: {token}});
+            const current_date = new Date();
 
-            if(!ocurrence){return false};
-            return true;
+            if(!ocurrence){throw new NotFoundException("Não foi possível localizar o token")};
+            if(current_date > ocurrence.expiryAt){throw new RequestTimeoutException("Token expirado")};
+
+            return {user_id: ocurrence.user_id, isTokenValid: true};
         } catch(E: any) {
             if(E instanceof HttpException){
                 throw E;
