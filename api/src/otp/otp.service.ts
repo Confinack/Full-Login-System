@@ -20,7 +20,7 @@ export class OtpService {
 
     async registerOTP(user_id: string, code: number, expiryAt: Date): Promise<void> {
         try {
-            await this.PrismaService.otp.deleteMany({where: {user_id}})
+            await this.PrismaService.otp.deleteMany({where: {user_id}});
 
             await this.PrismaService.otp.create({
                 data: {
@@ -28,7 +28,7 @@ export class OtpService {
                     code,
                     expiryAt
                 }
-            })
+            });
         } catch(E: any){
             throw new InternalServerErrorException("Erro ao tentar registrar código OTP");
         }
@@ -46,6 +46,7 @@ export class OtpService {
                 subject: "OTP verification",
                 text: `Your OTP code is ${code}`
             });
+            
         } catch(E: any) {
             throw new InternalServerErrorException("Erro ao tentar gerar o código OTP");
         }
@@ -55,7 +56,7 @@ export class OtpService {
         try {
             const OTP = await this.PrismaService.otp.findFirst({where: {user_id}});
             if(!OTP) {throw new NotFoundException("Usuário não possuí código OTP")};
-            console.log(code);
+
             const current_date = new Date();
             if (current_date > OTP.expiryAt){throw new RequestTimeoutException("Código OTP expirou")};
             if (OTP.code != code) {throw new ConflictException("Código OTP inválido")};
@@ -63,7 +64,7 @@ export class OtpService {
             return true;
         } catch(E: any) {
             if (E instanceof HttpException){
-                throw E
+                throw E;
             }
             throw new InternalServerErrorException("Erro inesperado ao validar OTP");
         }

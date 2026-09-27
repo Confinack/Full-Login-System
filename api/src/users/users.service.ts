@@ -12,7 +12,7 @@ import { IUpdateUser } from './dto/update-user.dto.js';
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly prisma: PrismaService){}
+    constructor(private readonly prisma: PrismaService){};
 
     async create(data: Prisma.UserCreateInput): Promise<{new_user: User, message?: string}> {
         try {
@@ -25,7 +25,7 @@ export class UsersService {
 
     async findFirst(data: IFindUser): Promise<User | null> {
         try {
-            const user = await this.prisma.user.findFirst({where: data})
+            const user = await this.prisma.user.findFirst({where: data});
             return user;
         } catch(E: any) {
             throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário");
@@ -34,7 +34,7 @@ export class UsersService {
 
     async findByCredentials(data: IFindByCredentials): Promise<User | null> {
         try {
-            const user = await this.prisma.user.findFirst({where: data})
+            const user = await this.prisma.user.findFirst({where: data});
             return user;
         } catch(E: any) {
             throw new InternalServerErrorException("Erro ao buscar usuário pelas suas credenciais");
@@ -46,7 +46,7 @@ export class UsersService {
             await this.prisma.user.update({
                 where: {id},
                 data
-            })
+            });
         } catch(E: any) {
             throw new InternalServerErrorException("Erro inesperado ocorreu ao tentar atualizar usuário");
         }
