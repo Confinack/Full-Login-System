@@ -7,6 +7,7 @@ import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 
 import { IFindUser } from './dto/find-user.dto.js';
+import { IFindByCredentials } from './dto/findByCredentials-user.dto.js';
 import { IUpdateUser } from './dto/update-user.dto.js';
 
 @Injectable()
@@ -31,12 +32,12 @@ export class UsersService {
         }
     }
 
-    async findByEmail(email: string): Promise<User | null> {
+    async findByCredentials(data: IFindByCredentials): Promise<User | null> {
         try {
-            const user = await this.prisma.user.findFirst({where: {email}});
+            const user = await this.prisma.user.findFirst({where: data})
             return user;
-        } catch (E: any) {
-            throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário por email");
+        } catch(E: any) {
+            throw new InternalServerErrorException("Erro ao buscar usuário pelas suas credenciais");
         }
     }
 

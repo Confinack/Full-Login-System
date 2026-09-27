@@ -1,4 +1,4 @@
 export interface IVerifyOTP {
-    email: string,
+    user_id: string,
     code: number
 }
