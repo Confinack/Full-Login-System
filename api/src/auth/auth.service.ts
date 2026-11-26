@@ -88,15 +88,16 @@ export class AuthService {
         return isTokenValid;
     }
 
-    async resetPassword(data: IResetPassword): Promise<{message: string}> {
-        const {user_id, isTokenValid} = await this.passwordResetService.verifyToken(data.token);
+    async resetPassword({token, password, confirmPassword}: IResetPassword): Promise<{message: string}> {
+        const {user_id, isTokenValid} = await this.passwordResetService.verifyToken(token);
         
         if(!isTokenValid){throw new ConflictException("Dados inválidos")};
         if(!user_id){throw new NotFoundException("Usuário não encontrado")};
-        if(data.password != data.confirmPassword){throw new ConflictException("Credenciais inválidas ao tentar resetar a senha")};
+        if(password != confirmPassword){throw new ConflictException("Credenciais inválidas ao tentar resetar a senha")};
         
-        const password_hash = await bcrypt.hash(data.password, 12);
+        const password_hash = await bcrypt.hash(password, 12);
         await this.userService.update(user_id, {password: password_hash});
+        await this.passwordResetService.deleteToken(token);
         return {message: "Senha atualizada com sucesso"};
     }
 }

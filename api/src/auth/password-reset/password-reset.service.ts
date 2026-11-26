@@ -15,17 +15,17 @@ import { IResetPassword } from './dto/verify-password-reset-token.dto.js';
 @Injectable()
 export class PasswordresetService {
     private readonly token_expiry_time_in_minutes = 10;
-    constructor(private readonly mailSender: MailsenderService, private readonly prismaClient: PrismaService){};
+    constructor(private readonly mailSender: MailsenderService, private readonly prismaService: PrismaService){};
 
     async generatePasswordResetToken({user_id, to}: IPasswordResetRequest): Promise<void> {
         try {
-            await this.prismaClient.passwordReset.deleteMany({where: {user_id}});
+            await this.prismaService.passwordReset.deleteMany({where: {user_id}});
 
             const token = crypto.randomUUID();
             const expiryAt = new Date();
             expiryAt.setTime(expiryAt.getTime() + (this.token_expiry_time_in_minutes * 60 * 1000));
 
-            await this.prismaClient.passwordReset.create({
+            await this.prismaService.passwordReset.create({
                 data: {
                     token,
                     user_id,
@@ -50,7 +50,7 @@ export class PasswordresetService {
 
     async verifyToken(token: string): Promise<{user_id?: string, isTokenValid: boolean}> {
         try {
-            const ocurrence = await this.prismaClient.passwordReset.findFirst({where: {token}});
+            const ocurrence = await this.prismaService.passwordReset.findFirst({where: {token}});
             const current_date = new Date();
 
             if(!ocurrence){throw new NotFoundException("Não foi possível localizar o token")};
@@ -58,9 +58,15 @@ export class PasswordresetService {
 
             return {user_id: ocurrence.user_id, isTokenValid: true};
         } catch(E: any) {
-            if(E instanceof HttpException){
-                throw E;
-            };
+            throw new InternalServerErrorException("Erro ao tentar verificar token para resetar senha");
+        }
+    }
+
+    async deleteToken(token: string): Promise<void> {
+        try {
+            await this.prismaService.passwordReset.delete({where: {token}});
+            return;
+        } catch(E: any) {
 
             throw new InternalServerErrorException("Erro ao tentar verificar token para resetar senha");
         }
