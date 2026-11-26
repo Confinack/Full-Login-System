@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 
-import type { IRegisterUser } from '../users/dto/register-user.dto.js';
-import type { IFindByCredentials } from '../users/dto/findByCredentials-user.dto.js';
+import type { IRegisterUser } from '../users/dto/create-user.dto.js';
+import type { IFindByCredentials } from '../users/dto/find-by-credentials.dto.js';
 import type { Response } from "express";
 import type { IVerifyOTP } from '../otp/dto/verify-otp.dto.js';
 import type { IResetPassword } from './dto/verify-password-reset-token.dto.js';

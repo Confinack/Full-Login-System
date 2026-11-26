@@ -6,7 +6,7 @@ import {
     RequestTimeoutException
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service.js';
-import { MailsenderService } from '../../mailsender/mailsender.service.js';
+import { MailsenderService } from '../../mail-sender/mailsender.service.js';
 import { IPasswordResetRequest } from '../dto/password-reset-request.dto.js';
 
 import * as crypto from "crypto";

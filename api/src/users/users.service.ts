@@ -7,7 +7,7 @@ import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 
 import { IFindUser } from './dto/find-user.dto.js';
-import { IFindByCredentials } from './dto/findByCredentials-user.dto.js';
+import { IFindByCredentials } from './dto/find-by-credentials.dto.js';
 import { IUpdateUser } from './dto/update-user.dto.js';
 
 @Injectable()

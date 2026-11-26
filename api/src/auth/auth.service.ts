@@ -10,11 +10,11 @@ import { User } from "@prisma/client";
 import { UsersService } from '../users/users.service.js';
 import { OtpService } from '../otp/otp.service.js';
 
-import { IRegisterUser } from '../users/dto/register-user.dto.js';
-import { IFindByCredentials } from '../users/dto/findByCredentials-user.dto.js';
-import { ILoginResponse } from './dto/login-response-auth.dto.js';
+import { IRegisterUser } from '../users/dto/create-user.dto.js';
+import { IFindByCredentials } from '../users/dto/find-by-credentials.dto.js';
+import { ILoginResponse } from './dto/login-response.dto.js';
 import { IVerifyOTP } from '../otp/dto/verify-otp.dto.js';
-import { PasswordresetService } from './passwordreset/passwordreset.service.js';
+import { PasswordresetService } from './password-reset/password-reset.service.js';
 import { IResetPassword } from './dto/verify-password-reset-token.dto.js';
 
 @Injectable()
