@@ -60,6 +60,7 @@ export class AuthService {
         if(!validation){return {status: validation, message: "Erro ao verificar usuário"}};
 
         await this.userService.update(user.id, {isVerified: true});
+        await this.otpService.deleteOTP(data);
         return {status: validation, message: "Usuário verificado com sucesso"};
     }
 

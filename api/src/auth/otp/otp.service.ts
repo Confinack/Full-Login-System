@@ -69,4 +69,13 @@ export class OtpService {
             throw new InternalServerErrorException("Erro inesperado ao validar OTP");
         }
     }
+
+    async deleteOTP({user_id, code}: IVerifyOTP): Promise<void> {
+        try {
+            await this.prismaService.otp.deleteMany({where: {user_id, code}});
+            return;
+        } catch(E) {
+            throw new InternalServerErrorException("Erro inesperado ao deletar OTP");
+        }
+    }
 }
