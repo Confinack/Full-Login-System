@@ -15,17 +15,17 @@ import { IResetPassword } from '../dto/verify-password-reset-token.dto.js';
 @Injectable()
 export class PasswordresetService {
     private readonly token_expiry_time_in_minutes = 10;
-    constructor(private readonly MailSender: MailsenderService, private readonly PrismaSerivce: PrismaService){};
+    constructor(private readonly mailSender: MailsenderService, private readonly prismaClient: PrismaService){};
 
     async generatePasswordResetToken({user_id, to}: IPasswordResetRequest): Promise<void> {
         try {
-            await this.PrismaSerivce.passwordReset.deleteMany({where: {user_id}});
+            await this.prismaClient.passwordReset.deleteMany({where: {user_id}});
 
             const token = crypto.randomUUID();
             const expiryAt = new Date();
             expiryAt.setTime(expiryAt.getTime() + (this.token_expiry_time_in_minutes * 60 * 1000));
 
-            await this.PrismaSerivce.passwordReset.create({
+            await this.prismaClient.passwordReset.create({
                 data: {
                     token,
                     user_id,
@@ -33,7 +33,7 @@ export class PasswordresetService {
                 }
             });
 
-            await this.MailSender.sendEmail({
+            await this.mailSender.sendEmail({
                 to,
                 subject: "Recuperar senha",
                 text: "Para recuperar sua senha acesse: <...>"
@@ -50,7 +50,7 @@ export class PasswordresetService {
 
     async verifyToken(token: string): Promise<{user_id?: string, isTokenValid: boolean}> {
         try {
-            const ocurrence = await this.PrismaSerivce.passwordReset.findFirst({where: {token}});
+            const ocurrence = await this.prismaClient.passwordReset.findFirst({where: {token}});
             const current_date = new Date();
 
             if(!ocurrence){throw new NotFoundException("Não foi possível localizar o token")};

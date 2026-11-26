@@ -16,13 +16,13 @@ import { PrismaService } from '../database/prisma.service.js';
 @Injectable()
 export class OtpService {
     private readonly otp_expiry_time_in_minutes = 10;
-    constructor(private readonly MailService: MailsenderService, private readonly PrismaService: PrismaService){};
+    constructor(private readonly mailService: MailsenderService, private readonly prismaService: PrismaService){};
 
     async registerOTP(user_id: string, code: number, expiryAt: Date): Promise<void> {
         try {
-            await this.PrismaService.otp.deleteMany({where: {user_id}});
+            await this.prismaService.otp.deleteMany({where: {user_id}});
 
-            await this.PrismaService.otp.create({
+            await this.prismaService.otp.create({
                 data: {
                     user_id,
                     code,
@@ -41,7 +41,7 @@ export class OtpService {
             expiryAt.setTime(expiryAt.getTime() + (this.otp_expiry_time_in_minutes * 60 * 1000));
 
             await this.registerOTP(user_id, code, expiryAt);
-            await this.MailService.sendEmail({
+            await this.mailService.sendEmail({
                 to: email,
                 subject: "OTP verification",
                 text: `Your OTP code is ${code}`
@@ -54,7 +54,7 @@ export class OtpService {
 
     async verifyOTP({user_id, code}: IVerifyOTP): Promise<boolean> {
         try {
-            const OTP = await this.PrismaService.otp.findFirst({where: {user_id}});
+            const OTP = await this.prismaService.otp.findFirst({where: {user_id}});
             if(!OTP) {throw new NotFoundException("Usuário não possuí código OTP")};
 
             const current_date = new Date();

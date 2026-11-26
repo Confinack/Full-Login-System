@@ -11,12 +11,12 @@ import type { Response } from "express";
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly UserService: UsersService){}
+    constructor(private readonly userService: UsersService){}
 
     @Delete(":id")
     @HttpCode(HttpStatus.NO_CONTENT)
     async delete(@Param("id") id: string, @Res() response: Response): Promise<void>{
-        await this.UserService.delete(id);
+        await this.userService.delete(id);
         response.end();
     }
 }
