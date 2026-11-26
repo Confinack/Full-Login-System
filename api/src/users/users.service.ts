@@ -6,35 +6,51 @@ import { Prisma, User } from '@prisma/client';
 
 import { PrismaService } from '../database/prisma.service.js';
 
-import { IFindUser } from './dto/find-user.dto.js';
+import { IUserResponse } from './dto/users-response.dto.js';
+import { IFindUser } from './dto/find-users.dto.js';
 import { IFindByCredentials } from './dto/find-by-credentials.dto.js';
-import { IUpdateUser } from './dto/update-user.dto.js';
+import { IUpdateUser } from './dto/update-users.dto.js';
 
 @Injectable()
 export class UsersService {
     constructor(private readonly prismaService: PrismaService){};
 
-    async create(data: Prisma.UserCreateInput): Promise<{new_user: User, message?: string}> {
+    async create(data: Prisma.UserCreateInput): Promise<{ user: IUserResponse, message?: string}> {
         try {
-            const new_user = await this.prismaService.user.create({data});
-            return {new_user, message: "Usuário criado com sucesso"};
+            const user = await this.prismaService.user.create({
+                data,
+                omit: {
+                    password: true
+                }
+            });
+            return {user, message: "Usuário criado com sucesso"};
         } catch(E: any) {
             throw new InternalServerErrorException("Não foi possível cadastrar usuário");
         }
     }
 
-    async findFirst(data: IFindUser): Promise<User | null> {
+    async findFirst(data: IFindUser): Promise< IUserResponse | null> {
         try {
-            const user = await this.prismaService.user.findFirst({where: data});
+            const user = await this.prismaService.user.findFirst({
+                where: data,
+                omit: {
+                    password: true
+                }
+            });
             return user;
         } catch(E: any) {
             throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário");
         }
     }
 
-    async findByCredentials(data: IFindByCredentials): Promise<User | null> {
+    async findByCredentials(data: IFindByCredentials): Promise< IUserResponse | null> {
         try {
-            const user = await this.prismaService.user.findFirst({where: data});
+            const user = await this.prismaService.user.findFirst({
+                where: data,
+                omit: {
+                    password: true
+                }
+            });
             return user;
         } catch(E: any) {
             throw new InternalServerErrorException("Erro ao buscar usuário pelas suas credenciais");

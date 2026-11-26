@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service.js';
 import { DatabaseModule } from '../database/database.module.js';
-import { OtpModule } from '../otp/otp.module.js';
+import { OtpModule } from '../auth/otp/otp.module.js';
 import { UsersController } from './users.controller.js';
 
 @Module({

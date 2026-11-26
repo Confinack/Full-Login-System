@@ -8,12 +8,12 @@ import {
 import { User } from "@prisma/client";
 
 import { UsersService } from '../users/users.service.js';
-import { OtpService } from '../otp/otp.service.js';
+import { OtpService } from './otp/otp.service.js';
 
-import { IRegisterUser } from '../users/dto/create-user.dto.js';
+import { IRegisterUser } from '../users/dto/create-users.dto.js';
 import { IFindByCredentials } from '../users/dto/find-by-credentials.dto.js';
 import { ILoginResponse } from './dto/login-response.dto.js';
-import { IVerifyOTP } from '../otp/dto/verify-otp.dto.js';
+import { IVerifyOTP } from './otp/dto/verify-otp.dto.js';
 import { PasswordresetService } from './password-reset/password-reset.service.js';
 import { IResetPassword } from './password-reset/dto/verify-password-reset-token.dto.js';
 
@@ -25,28 +25,28 @@ export class AuthService {
         private readonly passwordResetService: PasswordresetService
     ){};
 
-    async register(data: IRegisterUser): Promise<{user?: User, message?: string}> {
-        const user = await this.userService.findFirst({email: data.email});
+    async register(data: IRegisterUser): Promise<{user?: {id: string, email: string}, message?: string}> {
+        const previous_user = await this.userService.findFirst({email: data.email});
 
-        if(user) {
-            if(!user.isVerified) {
-                await this.userService.update(user.id, {
+        if(previous_user) {
+            if(!previous_user.isVerified) {
+                await this.userService.update(previous_user.id, {
                     name: data.name,
                     password: data.password,
                     createdAt: new Date()
                 });
 
-                await this.otpService.generateOTP(user.id, user.email);
-                return {user, message: "Usuário recadastrado com sucesso"};
+                await this.otpService.generateOTP(previous_user.id, previous_user.email);
+                return {user: {id: previous_user.id, email: previous_user.email}, message: "Usuário recadastrado com sucesso"};
             };
 
             throw new ConflictException("Usuário já cadastrado");
         };
 
-        const {new_user, message} = await this.userService.create(data);
-        await this.otpService.generateOTP(new_user.id, new_user.email);
+        const {user, message} = await this.userService.create(data);
+        await this.otpService.generateOTP(user.id, user.email);
         
-        return {user: new_user, message};
+        return {user, message};
     }
 
     async verify(data: IVerifyOTP): Promise<{status: boolean, message: string}> {
