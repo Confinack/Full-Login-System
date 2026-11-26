@@ -1,4 +1,4 @@
-export interface IFindByCredentials {
+export interface ILogin {
     email: string,
     password: string
 }

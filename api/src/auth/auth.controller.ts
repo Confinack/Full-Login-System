@@ -11,7 +11,7 @@ import {
 import { AuthService } from './auth.service.js';
 
 import type { IRegisterUser } from '../users/dto/create-users.dto.js';
-import type { IFindByCredentials } from '../users/dto/find-by-credentials.dto.js';
+import type { ILogin } from './dto/login.dto.js';
 import type { Response } from "express";
 import type { IVerifyOTP } from './otp/dto/verify-otp.dto.js';
 import type { IResetPassword } from './password-reset/dto/verify-password-reset-token.dto.js';
@@ -30,13 +30,13 @@ export class AuthController {
   @Post("verify-otp")
   @HttpCode(HttpStatus.OK)
   async verify(@Body() data: IVerifyOTP, @Res() response: Response): Promise<void> {
-    const result = await this.authService.verify(data);
+    const result = await this.authService.verifyAccount(data);
     response.json(result);
   };
 
   @Post("login")
   @HttpCode(HttpStatus.FOUND)
-  async login(@Body() data: IFindByCredentials, @Res() response: Response): Promise<void> {
+  async login(@Body() data: ILogin, @Res() response: Response): Promise<void> {
     const result = await this.authService.login(data);
     response.json(result);
   }
