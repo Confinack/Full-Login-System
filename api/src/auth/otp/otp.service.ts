@@ -10,8 +10,8 @@ import {
 import * as crypto from "crypto";
 import { IVerifyOTP } from './dto/verify-otp.dto.js';
 
-import { MailsenderService } from "../mail-sender/mailsender.service.js";
-import { PrismaService } from '../database/prisma.service.js';
+import { MailsenderService } from "../../mail-sender/mailsender.service.js";
+import { PrismaService } from '../../database/prisma.service.js';
 
 @Injectable()
 export class OtpService {

@@ -15,7 +15,7 @@ import { IFindByCredentials } from '../users/dto/find-by-credentials.dto.js';
 import { ILoginResponse } from './dto/login-response.dto.js';
 import { IVerifyOTP } from '../otp/dto/verify-otp.dto.js';
 import { PasswordresetService } from './password-reset/password-reset.service.js';
-import { IResetPassword } from './dto/verify-password-reset-token.dto.js';
+import { IResetPassword } from './password-reset/dto/verify-password-reset-token.dto.js';
 
 @Injectable()
 export class AuthService {

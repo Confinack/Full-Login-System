@@ -10,7 +10,7 @@ import { MailsenderService } from '../../mail-sender/mailsender.service.js';
 import { IPasswordResetRequest } from '../dto/password-reset-request.dto.js';
 
 import * as crypto from "crypto";
-import { IResetPassword } from '../dto/verify-password-reset-token.dto.js';
+import { IResetPassword } from './dto/verify-password-reset-token.dto.js';
 
 @Injectable()
 export class PasswordresetService {
