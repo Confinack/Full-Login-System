@@ -45,11 +45,11 @@ export class OtpService {
 
     async verifyOTP({user_id, code}: VerifyOtpDTO): Promise<boolean> {
         const OTP = await this.prismaService.otp.findFirst({where: {user_id}});
-        if(!OTP) {throw new NotFoundException("Usuário não possuí código OTP")};
+        if(!OTP) {throw new NotFoundException("User does not have an OTP code")};
 
         const current_date = new Date();
-        if (current_date > OTP.expiryAt){throw new RequestTimeoutException("Código OTP expirou")};
-        if (OTP.code != code) {throw new ConflictException("Código OTP inválido")};
+        if (current_date > OTP.expiryAt){throw new RequestTimeoutException("Expired OTP")};
+        if (OTP.code != code) {throw new ConflictException("Invalid OTP")};
 
         return true;
     }

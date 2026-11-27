@@ -18,7 +18,7 @@ export class MailsenderService {
 
     async sendEmail({ to, subject, text }: { to: string, subject: string, text: string }): Promise<void>{
         try {
-            console.log("Envio de emails temporariamente desabilitado -> mailsender.service.ts");
+            console.log("Email sending temporarily disabled -> mailsender.service.ts");
             /* await this.transporter.sendMail({
                 from: "nao-responda@gmail.com",
                 to,
@@ -26,7 +26,7 @@ export class MailsenderService {
                 text
             });*/
         } catch(E: any){
-            throw new InternalServerErrorException("Erro ao enviar email");
+            throw new InternalServerErrorException("Error sending email");
         }        
     }
 }

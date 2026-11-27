@@ -30,7 +30,7 @@ export class AuthService {
 
     async register(data: RegisterUserDTO): Promise<{user?: {id: string, email: string}, message?: string}> {
         const previous_user = await this.userService.findFirst({email: data.email});
-        if(previous_user && previous_user.isVerified){throw new ConflictException("Usuário já cadastrado")}
+        if(previous_user && previous_user.isVerified){throw new ConflictException("User already exists")}
         
         const password_hash = await bcrypt.hash(data.password, 12);
         if(previous_user) {
@@ -40,7 +40,7 @@ export class AuthService {
             });
 
             await this.otpService.generateOTP(previous_user.id, previous_user.email);
-            return {user: {id: previous_user.id, email: previous_user.email}, message: "Usuário recadastrado com sucesso"};
+            return {user: {id: previous_user.id, email: previous_user.email}, message: "User re-registered successfully"};
         };
 
 
@@ -53,25 +53,25 @@ export class AuthService {
     async verifyAccount(data: VerifyOtpDTO): Promise<{status: boolean, message: string}> {
         const user = await this.userService.findFirst({id: data.user_id});
         
-        if(!user){throw new NotFoundException("Usuário não encontrado")};
-        if(user.isVerified){throw new BadRequestException("Usuário já validado")};
+        if(!user){throw new NotFoundException("User not found")};
+        if(user.isVerified){throw new BadRequestException("User already validated")};
 
         const validation = await this.otpService.verifyOTP(data);
-        if(!validation){return {status: validation, message: "Erro ao verificar usuário"}};
+        if(!validation){return {status: validation, message: "Error verifying user"}};
 
         await this.userService.update(user.id, {isVerified: true});
         await this.otpService.deleteOTP(data);
-        return {status: validation, message: "Usuário verificado com sucesso"};
+        return {status: validation, message: "User verified successfully"};
     }
 
     async login(data: LoginDTO): Promise<ILoginResponse> {
         const user = await this.userService.findByEmailWithPassword(data.email);
         const correctPassword = user?.password && await bcrypt.compare(data.password, user.password);
         
-        if(!user || !correctPassword){throw new UnauthorizedException("Usuário ou senha incorretos")};
+        if(!user || !correctPassword){throw new UnauthorizedException("User or password incorrect")};
         
         const {password, ...safeUser} = user;
-        if (!safeUser.isVerified){throw new ForbiddenException("Usuário não passou pela validação de OTP")};
+        if (!safeUser.isVerified){throw new ForbiddenException("User has not completed OTP validation")};
         
         return safeUser;
     }
@@ -91,13 +91,13 @@ export class AuthService {
     async resetPassword({token, password, confirmPassword}: ResetPasswordDTO): Promise<{message: string}> {
         const {user_id, isTokenValid} = await this.passwordResetService.verifyToken(token);
         
-        if(!isTokenValid){throw new BadRequestException("Dados inválidos")};
-        if(!user_id){throw new NotFoundException("Usuário não encontrado")};
-        if(password != confirmPassword){throw new BadRequestException("Credenciais inválidas ao tentar resetar a senha")};
+        if(!isTokenValid){throw new BadRequestException("Invalid data")};
+        if(!user_id){throw new NotFoundException("User not found")};
+        if(password != confirmPassword){throw new BadRequestException("Invalid credentials while trying to reset password")};
         
         const password_hash = await bcrypt.hash(password, 12);
         await this.userService.update(user_id, {password: password_hash});
         await this.passwordResetService.deleteToken(token);
-        return {message: "Senha atualizada com sucesso"};
+        return {message: "Password updated successfully"};
     }
 }

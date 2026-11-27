@@ -18,31 +18,31 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       case "P2000": {
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          message: "Violação de limites aceitos pela coluna"
+          message: "Column value length limit exceeded"
         })
       };
       case "P2002": {
         return response.status(HttpStatus.CONFLICT).json({
           statusCode: HttpStatus.CONFLICT,
-          message: "Violação de campo único"
+          message: "Unique constraint violation"
         })
       };
       case "P2011": {
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          message: "Violação de campo não nulo"
+          message: "Null constraint violation"
         })
       };
       case "P2025": {
         return response.status(HttpStatus.NOT_FOUND).json({
           statusCode: HttpStatus.NOT_FOUND,
-          message: "Registro não encontrado"
+          message: "Record not found"
         })
       };
       default: {
         return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: "Um erro interno aconteceu no banco de dados"
+          message: "An internal database error occurred"
         })
       }
     }

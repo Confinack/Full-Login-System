@@ -44,8 +44,8 @@ export class PasswordresetService {
         const ocurrence = await this.prismaService.passwordReset.findFirst({where: {token}});
         const current_date = new Date();
 
-        if(!ocurrence){throw new NotFoundException("Não foi possível localizar o token")};
-        if(current_date > ocurrence.expiryAt){throw new RequestTimeoutException("Token expirado")};
+        if(!ocurrence){throw new NotFoundException("Token not found")};
+        if(current_date > ocurrence.expiryAt){throw new RequestTimeoutException("Expired token")};
 
         return {user_id: ocurrence.user_id, isTokenValid: true};
     }
