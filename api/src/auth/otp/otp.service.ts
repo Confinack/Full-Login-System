@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 
 import * as crypto from "crypto";
-import { IVerifyOTP } from './dto/verify-otp.dto.js';
+import { VerifyOtpDTO } from './dto/verify-otp.dto.js';
 
 import { MailsenderService } from "../../mail-sender/mailsender.service.js";
 import { PrismaService } from '../../database/prisma.service.js';
@@ -43,7 +43,7 @@ export class OtpService {
         });
     }
 
-    async verifyOTP({user_id, code}: IVerifyOTP): Promise<boolean> {
+    async verifyOTP({user_id, code}: VerifyOtpDTO): Promise<boolean> {
         const OTP = await this.prismaService.otp.findFirst({where: {user_id}});
         if(!OTP) {throw new NotFoundException("Usuário não possuí código OTP")};
 
@@ -54,7 +54,7 @@ export class OtpService {
         return true;
     }
 
-    async deleteOTP({user_id, code}: IVerifyOTP): Promise<void> {
+    async deleteOTP({user_id, code}: VerifyOtpDTO): Promise<void> {
         await this.prismaService.otp.deleteMany({where: {user_id, code}});   
     }
 }

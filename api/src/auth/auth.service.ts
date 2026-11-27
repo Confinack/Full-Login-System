@@ -12,12 +12,13 @@ import bcrypt from "bcrypt";
 import { UsersService } from '../users/users.service.js';
 import { OtpService } from './otp/otp.service.js';
 
-import { IRegisterUser } from '../users/dto/create-users.dto.js';
-import { ILogin } from './dto/login.dto.js';
+import { RegisterUserDTO } from '../users/dto/register-users.dto.js';
+import { VerifyOtpDTO } from './otp/dto/verify-otp.dto.js';
+import { LoginDTO } from './dto/login.dto.js';
+import { ResetPasswordDTO } from './password-reset/dto/verify-password-reset-token.dto.js';
+
 import { ILoginResponse } from './dto/login-response.dto.js';
-import { IVerifyOTP } from './otp/dto/verify-otp.dto.js';
 import { PasswordresetService } from './password-reset/password-reset.service.js';
-import { IResetPassword } from './password-reset/dto/verify-password-reset-token.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
         private readonly passwordResetService: PasswordresetService
     ){};
 
-    async register(data: IRegisterUser): Promise<{user?: {id: string, email: string}, message?: string}> {
+    async register(data: RegisterUserDTO): Promise<{user?: {id: string, email: string}, message?: string}> {
         const previous_user = await this.userService.findFirst({email: data.email});
         if(previous_user && previous_user.isVerified){throw new ConflictException("Usuário já cadastrado")}
         
@@ -49,7 +50,7 @@ export class AuthService {
         return {user, message};
     }
 
-    async verifyAccount(data: IVerifyOTP): Promise<{status: boolean, message: string}> {
+    async verifyAccount(data: VerifyOtpDTO): Promise<{status: boolean, message: string}> {
         const user = await this.userService.findFirst({id: data.user_id});
         
         if(!user){throw new NotFoundException("Usuário não encontrado")};
@@ -63,7 +64,7 @@ export class AuthService {
         return {status: validation, message: "Usuário verificado com sucesso"};
     }
 
-    async login(data: ILogin): Promise<ILoginResponse> {
+    async login(data: LoginDTO): Promise<ILoginResponse> {
         const user = await this.userService.findByEmailWithPassword(data.email);
         const correctPassword = user?.password && await bcrypt.compare(data.password, user.password);
         
@@ -87,7 +88,7 @@ export class AuthService {
         return isTokenValid;
     }
 
-    async resetPassword({token, password, confirmPassword}: IResetPassword): Promise<{message: string}> {
+    async resetPassword({token, password, confirmPassword}: ResetPasswordDTO): Promise<{message: string}> {
         const {user_id, isTokenValid} = await this.passwordResetService.verifyToken(token);
         
         if(!isTokenValid){throw new BadRequestException("Dados inválidos")};

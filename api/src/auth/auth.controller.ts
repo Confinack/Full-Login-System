@@ -10,11 +10,13 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 
-import type { IRegisterUser } from '../users/dto/create-users.dto.js';
-import type { ILogin } from './dto/login.dto.js';
+import { RegisterUserDTO } from '../users/dto/register-users.dto.js';
+import { VerifyOtpDTO } from './otp/dto/verify-otp.dto.js';
+import { LoginDTO } from './dto/login.dto.js';
+import { ForgotPasswordDTO } from './dto/forgot-password.dto.js';
+import { ResetPasswordDTO } from './password-reset/dto/verify-password-reset-token.dto.js';
+
 import type { Response } from "express";
-import type { IVerifyOTP } from './otp/dto/verify-otp.dto.js';
-import type { IResetPassword } from './password-reset/dto/verify-password-reset-token.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -22,28 +24,28 @@ export class AuthController {
 
   @Post("register")
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() data: IRegisterUser, @Res() response: Response): Promise<void> {
+  async register(@Body() data: RegisterUserDTO, @Res() response: Response): Promise<void> {
     const result = await this.authService.register(data);
     response.json(result);
   };
 
   @Post("verify-otp")
   @HttpCode(HttpStatus.OK)
-  async verify(@Body() data: IVerifyOTP, @Res() response: Response): Promise<void> {
+  async verify(@Body() data: VerifyOtpDTO, @Res() response: Response): Promise<void> {
     const result = await this.authService.verifyAccount(data);
     response.json(result);
   };
 
   @Post("login")
   @HttpCode(HttpStatus.FOUND)
-  async login(@Body() data: ILogin, @Res() response: Response): Promise<void> {
+  async login(@Body() data: LoginDTO, @Res() response: Response): Promise<void> {
     const result = await this.authService.login(data);
     response.json(result);
   }
 
   @Post("forgot-password")
   @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body() { email }: {email: string}, @Res() response: Response): Promise<void> {
+  async forgotPassword(@Body() { email }: ForgotPasswordDTO, @Res() response: Response): Promise<void> {
     await this.authService.forgotPassword(email);
     response.end();
   }
@@ -57,7 +59,7 @@ export class AuthController {
 
   @Post("reset-password")
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() data: IResetPassword, @Res() response: Response): Promise<void> {
+  async resetPassword(@Body() data: ResetPasswordDTO, @Res() response: Response): Promise<void> {
     const result = await this.authService.resetPassword(data);
     response.json(result);
   }
