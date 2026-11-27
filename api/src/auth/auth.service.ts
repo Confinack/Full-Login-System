@@ -3,7 +3,8 @@ import {
     ForbiddenException, 
     NotFoundException, 
     ConflictException, 
-    BadRequestException 
+    BadRequestException, 
+    UnauthorizedException
 } from '@nestjs/common';
 
 import bcrypt from "bcrypt";
@@ -28,21 +29,19 @@ export class AuthService {
 
     async register(data: IRegisterUser): Promise<{user?: {id: string, email: string}, message?: string}> {
         const previous_user = await this.userService.findFirst({email: data.email});
+        if(previous_user && previous_user.isVerified){throw new ConflictException("Usuário já cadastrado")}
+        
         const password_hash = await bcrypt.hash(data.password, 12);
-
         if(previous_user) {
-            if(!previous_user.isVerified) {
-                await this.userService.update(previous_user.id, {
-                    name: data.name,
-                    password: password_hash
-                });
+            await this.userService.update(previous_user.id, {
+                name: data.name,
+                password: password_hash
+            });
 
-                await this.otpService.generateOTP(previous_user.id, previous_user.email);
-                return {user: {id: previous_user.id, email: previous_user.email}, message: "Usuário recadastrado com sucesso"};
-            };
-
-            throw new ConflictException("Usuário já cadastrado");
+            await this.otpService.generateOTP(previous_user.id, previous_user.email);
+            return {user: {id: previous_user.id, email: previous_user.email}, message: "Usuário recadastrado com sucesso"};
         };
+
 
         const {user, message} = await this.userService.create({ ...data, password: password_hash });
         await this.otpService.generateOTP(user.id, user.email);
@@ -66,20 +65,19 @@ export class AuthService {
 
     async login(data: ILogin): Promise<ILoginResponse> {
         const user = await this.userService.findByEmailWithPassword(data.email);
-        if(!user){throw new NotFoundException("Usuário não encontrado")};
-
-        const correctPassword = await bcrypt.compare(data.password, user.password);
-        if(!correctPassword){throw new NotFoundException("Usuário ou senha incorretos")};
-
-        const {id, name, email, isVerified} = user;
-        if (!isVerified){throw new ForbiddenException("Usuário não passou pela validação de OTP")};
-
-        return {id, name, email, isVerified};
+        const correctPassword = user?.password && await bcrypt.compare(data.password, user.password);
+        
+        if(!user || !correctPassword){throw new UnauthorizedException("Usuário ou senha incorretos")};
+        
+        const {password, ...safeUser} = user;
+        if (!safeUser.isVerified){throw new ForbiddenException("Usuário não passou pela validação de OTP")};
+        
+        return safeUser;
     }
 
     async forgotPassword(email: string): Promise<void> {
         const user = await this.userService.findFirst({email});
-        if(!user){throw new NotFoundException("Usuário não encontrado")};
+        if(!user){return};
 
         await this.passwordResetService.generatePasswordResetToken({user_id: user.id, to: email});
     }
@@ -92,9 +90,9 @@ export class AuthService {
     async resetPassword({token, password, confirmPassword}: IResetPassword): Promise<{message: string}> {
         const {user_id, isTokenValid} = await this.passwordResetService.verifyToken(token);
         
-        if(!isTokenValid){throw new ConflictException("Dados inválidos")};
+        if(!isTokenValid){throw new BadRequestException("Dados inválidos")};
         if(!user_id){throw new NotFoundException("Usuário não encontrado")};
-        if(password != confirmPassword){throw new ConflictException("Credenciais inválidas ao tentar resetar a senha")};
+        if(password != confirmPassword){throw new BadRequestException("Credenciais inválidas ao tentar resetar a senha")};
         
         const password_hash = await bcrypt.hash(password, 12);
         await this.userService.update(user_id, {password: password_hash});
