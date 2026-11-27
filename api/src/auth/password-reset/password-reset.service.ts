@@ -67,7 +67,6 @@ export class PasswordresetService {
             await this.prismaService.passwordReset.delete({where: {token}});
             return;
         } catch(E: any) {
-
             throw new InternalServerErrorException("Erro ao tentar verificar token para resetar senha");
         }
     }
