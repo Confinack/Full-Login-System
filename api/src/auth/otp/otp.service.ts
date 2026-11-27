@@ -19,63 +19,42 @@ export class OtpService {
     constructor(private readonly mailService: MailsenderService, private readonly prismaService: PrismaService){};
 
     async registerOTP(user_id: string, code: number, expiryAt: Date): Promise<void> {
-        try {
-            await this.prismaService.otp.deleteMany({where: {user_id}});
+        await this.prismaService.otp.deleteMany({where: {user_id}});
 
-            await this.prismaService.otp.create({
-                data: {
-                    user_id,
-                    code,
-                    expiryAt
-                }
-            });
-        } catch(E: any){
-            throw new InternalServerErrorException("Erro ao tentar registrar código OTP");
-        }
+        await this.prismaService.otp.create({
+            data: {
+                user_id,
+                code,
+                expiryAt
+            }
+        });
     }
 
     async generateOTP(user_id: string, email: string): Promise<void> {
-        try {
-            const code = crypto.randomInt(100000, 999999);
-            const expiryAt = new Date();
-            expiryAt.setTime(expiryAt.getTime() + (this.otp_expiry_time_in_minutes * 60 * 1000));
+        const code = crypto.randomInt(100000, 999999);
+        const expiryAt = new Date();
+        expiryAt.setTime(expiryAt.getTime() + (this.otp_expiry_time_in_minutes * 60 * 1000));
 
-            await this.registerOTP(user_id, code, expiryAt);
-            await this.mailService.sendEmail({
-                to: email,
-                subject: "OTP verification",
-                text: `Your OTP code is ${code}`
-            });
-            
-        } catch(E: any) {
-            throw new InternalServerErrorException("Erro ao tentar gerar o código OTP");
-        }
+        await this.registerOTP(user_id, code, expiryAt);
+        await this.mailService.sendEmail({
+            to: email,
+            subject: "OTP verification",
+            text: `Your OTP code is ${code}`
+        });
     }
 
     async verifyOTP({user_id, code}: IVerifyOTP): Promise<boolean> {
-        try {
-            const OTP = await this.prismaService.otp.findFirst({where: {user_id}});
-            if(!OTP) {throw new NotFoundException("Usuário não possuí código OTP")};
+        const OTP = await this.prismaService.otp.findFirst({where: {user_id}});
+        if(!OTP) {throw new NotFoundException("Usuário não possuí código OTP")};
 
-            const current_date = new Date();
-            if (current_date > OTP.expiryAt){throw new RequestTimeoutException("Código OTP expirou")};
-            if (OTP.code != code) {throw new ConflictException("Código OTP inválido")};
+        const current_date = new Date();
+        if (current_date > OTP.expiryAt){throw new RequestTimeoutException("Código OTP expirou")};
+        if (OTP.code != code) {throw new ConflictException("Código OTP inválido")};
 
-            return true;
-        } catch(E: any) {
-            if (E instanceof HttpException){
-                throw E;
-            }
-            throw new InternalServerErrorException("Erro inesperado ao validar OTP");
-        }
+        return true;
     }
 
     async deleteOTP({user_id, code}: IVerifyOTP): Promise<void> {
-        try {
-            await this.prismaService.otp.deleteMany({where: {user_id, code}});
-            return;
-        } catch(E) {
-            throw new InternalServerErrorException("Erro inesperado ao deletar OTP");
-        }
+        await this.prismaService.otp.deleteMany({where: {user_id, code}});   
     }
 }

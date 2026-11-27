@@ -18,56 +18,38 @@ export class PasswordresetService {
     constructor(private readonly mailSender: MailsenderService, private readonly prismaService: PrismaService){};
 
     async generatePasswordResetToken({user_id, to}: IPasswordResetRequest): Promise<void> {
-        try {
-            await this.prismaService.passwordReset.deleteMany({where: {user_id}});
+        await this.prismaService.passwordReset.deleteMany({where: {user_id}});
 
-            const token = crypto.randomUUID();
-            const expiryAt = new Date();
-            expiryAt.setTime(expiryAt.getTime() + (this.token_expiry_time_in_minutes * 60 * 1000));
+        const token = crypto.randomUUID();
+        const expiryAt = new Date();
+        expiryAt.setTime(expiryAt.getTime() + (this.token_expiry_time_in_minutes * 60 * 1000));
 
-            await this.prismaService.passwordReset.create({
-                data: {
-                    token,
-                    user_id,
-                    expiryAt
-                }
-            });
+        await this.prismaService.passwordReset.create({
+            data: {
+                token,
+                user_id,
+                expiryAt
+            }
+        });
 
-            await this.mailSender.sendEmail({
-                to,
-                subject: "Recuperar senha",
-                text: "Para recuperar sua senha acesse: <...>"
-            });
-
-        } catch(E: any){
-            if(E instanceof HttpException){
-                throw E;
-            };
-
-            throw new InternalServerErrorException("Erro ao gerar token parar resetar senha");
-        }
+        await this.mailSender.sendEmail({
+            to,
+            subject: "Recuperar senha",
+            text: "Para recuperar sua senha acesse: <...>"
+        });
     }
 
     async verifyToken(token: string): Promise<{user_id?: string, isTokenValid: boolean}> {
-        try {
-            const ocurrence = await this.prismaService.passwordReset.findFirst({where: {token}});
-            const current_date = new Date();
+        const ocurrence = await this.prismaService.passwordReset.findFirst({where: {token}});
+        const current_date = new Date();
 
-            if(!ocurrence){throw new NotFoundException("Não foi possível localizar o token")};
-            if(current_date > ocurrence.expiryAt){throw new RequestTimeoutException("Token expirado")};
+        if(!ocurrence){throw new NotFoundException("Não foi possível localizar o token")};
+        if(current_date > ocurrence.expiryAt){throw new RequestTimeoutException("Token expirado")};
 
-            return {user_id: ocurrence.user_id, isTokenValid: true};
-        } catch(E: any) {
-            throw new InternalServerErrorException("Erro ao tentar verificar token para resetar senha");
-        }
+        return {user_id: ocurrence.user_id, isTokenValid: true};
     }
 
     async deleteToken(token: string): Promise<void> {
-        try {
-            await this.prismaService.passwordReset.delete({where: {token}});
-            return;
-        } catch(E: any) {
-            throw new InternalServerErrorException("Erro ao tentar verificar token para resetar senha");
-        }
+        await this.prismaService.passwordReset.delete({where: {token}});
     }
 }

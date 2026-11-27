@@ -15,60 +15,39 @@ export class UsersService {
     constructor(private readonly prismaService: PrismaService){};
 
     async create(data: Prisma.UserCreateInput): Promise<{ user: IUserResponse, message?: string}> {
-        try {
-            const user = await this.prismaService.user.create({
-                data,
-                omit: {
-                    password: true
-                }
-            });
-
-            return {user, message: "Usuário criado com sucesso"};
-        } catch(E: any) {
-            throw new InternalServerErrorException("Não foi possível cadastrar usuário");
-        }
+        const user = await this.prismaService.user.create({
+            data,
+            omit: {
+                password: true
+            }
+        });
+        return {user, message: "Usuário criado com sucesso"};
     }
 
     async findFirst(data: IFindUser): Promise< IUserResponse | null> {
-        try {
-            const user = await this.prismaService.user.findFirst({
-                where: data,
-                omit: {
-                    password: true
-                }
-            });
+        const user = await this.prismaService.user.findFirst({
+            where: data,
+            omit: {
+                password: true
+            }
+        });
 
-            return user;
-        } catch(E: any) {
-            throw new InternalServerErrorException("Erro inesperado ocorreu ao buscar usuário");
-        }
+        return user;
     }
 
     async findByEmailWithPassword(email: string): Promise< User | null> {
-        try {
-            const user = await this.prismaService.user.findUnique({ where: { email } });
-            return user;
-        } catch(E: any) {
-            throw new InternalServerErrorException("Erro ao buscar usuário pelas suas credenciais");
-        }
+        const user = await this.prismaService.user.findUnique({ where: { email } });
+        return user;
     }
 
     async update(id: string, data: IUpdateUser): Promise<void> {
-        try {
-            await this.prismaService.user.update({
-                where: {id},
-                data
-            });
-        } catch(E: any) {
-            throw new InternalServerErrorException("Erro inesperado ocorreu ao tentar atualizar usuário");
-        }
+        await this.prismaService.user.update({
+            where: {id},
+            data
+        });
     }
 
-    async delete(id: string): Promise<void> {
-        try {
-            await this.prismaService.user.delete({where: { id }});
-        }catch(E: any) {
-            throw new InternalServerErrorException("Erro inesperado ocorreu ao tentar deletar usuário");
-        }
+    async delete(id: string): Promise<void> {        
+        await this.prismaService.user.delete({where: { id }});
     }
 }
